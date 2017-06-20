@@ -40,12 +40,12 @@ def parse(service, url, start, stop, browser):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
             description=(
-                'Script to scrape search results from indexing services.'
+                'Script to collect crash dump stack traces.'
             )
         )
     parser.add_argument(
             '-b', dest='browser', default='firefox',
-            choices=['phantom', 'firefox'],
+            choices=['firefox'],
             help='The browser to use when retrieving the search results.'
         )
     parser.add_argument(
@@ -58,9 +58,9 @@ if __name__ == '__main__':
         )
     parser.add_argument(
             'service',
-            choices=['acm', 'dtic', 'ieee', 'proquest', 'springer', 'scholar'],
+            choices=['fedora'],
             help=(
-                'The indexing service from which the results are to be parsed.'
+                'The crash dump stack trace source from which the results are to be parsed.'
             )
         )
     parser.add_argument(

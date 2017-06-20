@@ -9,7 +9,7 @@ These scripts are written in Python 3. They require Selenium and termcolor to ru
 
 ```
 usage: miner.py [-h] [-b {firefox}] [--start START] [--stop STOP]
-                {ieee,acm,springer,dtic,proquest,scholar} url output
+                {fedora} url output
 
 Invokes parser.py to grab stack traces from the specified source.
 
@@ -26,4 +26,9 @@ optional arguments:
   -b {firefox}          The browser to use when retrieving the search results.
   --start START         Index of the page of results to start parsing from.
   --stop STOP           Index of the page of results to stop parsing to.
+```
+Example that scrapes just the first page:
+
+```
+python3 miner.py -b firefox fedora https://retrace.fedoraproject.org/faf/reports/?offset={} test.csv
 ```
