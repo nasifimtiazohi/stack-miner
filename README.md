@@ -30,5 +30,5 @@ optional arguments:
 Example that scrapes just the first page:
 
 ```
-python3 miner.py -b firefox fedora https://retrace.fedoraproject.org/faf/reports/?offset={} test.csv
+python miner.py -b firefox fedora https://retrace.fedoraproject.org/faf/reports/?order_by=count&associate=__None&first_occurrence_daterange=&component_names=&last_occurrence_daterange=2017-05-22%3A2017-06-20&offset={} test.csv --start 0 --stop 40
 ```

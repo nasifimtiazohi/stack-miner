@@ -23,11 +23,11 @@ def parse(service, url, start, stop, browser):
         if header:
             results.append(header)
 
-        index = 1
-        for page in range(start, stop + 1):
+        index = 0
+        for page in range(start, stop+1, 40):
             results += parser.parse(url.format(page))
-            info('{} results after {} page(s)'.format(len(results) - 1, index))
-            index += 1
+            info('{} results after {}\'th offset(s)'.format(len(results) - 1, index))
+            index += 40
     except KeyboardInterrupt:
         sys.stdout.write('\r')
         info('Exiting...')
