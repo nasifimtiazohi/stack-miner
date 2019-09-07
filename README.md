@@ -9,7 +9,7 @@ These scripts are written in Python 3. They require Selenium and termcolor to ru
 
 ```
 usage: miner.py [-h] [-b {firefox}] [--start START] [--stop STOP]
-                {fedora} url output
+                {fedora} "url" output
 
 Invokes parser.py to grab stack traces from the specified source.
 
@@ -17,7 +17,7 @@ positional arguments:
   {fedora}                The indexing service from which the results are to be
                           parsed.
   url                     The URL of the search results. Use {} as the
-                          placeholder for page number.
+                          placeholder for page number. The string needs to within double quote.
   output                  Path to the file to which the parse results should be
                           written.
 
