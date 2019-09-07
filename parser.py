@@ -48,7 +48,7 @@ class Parser(object):
         driver = None
 
         if browser == 'firefox':
-            driver = webdriver.Firefox()
+            driver = webdriver.Firefox(executable_path='./geckodriver')
         else:
             error('Cannot create driver for browser {}'.format(browser))
             sys.exit(1)

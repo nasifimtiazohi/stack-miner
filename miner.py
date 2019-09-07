@@ -24,7 +24,12 @@ def parse(service, url, start, stop, browser):
             results.append(header)
 
         index = 0
+        #TODO how to know the pagination has ended?
         for page in range(start, stop+1, 40):
+            temp=parser.parse(url.format(page))
+            if not temp:
+                print("no new data found at page ",page,"...exiting..")
+                exit(1)
             results += parser.parse(url.format(page))
             info('{} results after {}\'th offset(s)'.format(len(results) - 1, index))
             index += 40
@@ -83,7 +88,7 @@ if __name__ == '__main__':
             args.service, args.url, args.start, args.stop, args.browser
         )
     if results:
-        with open(args.output, 'w') as file_:
+        with open(str(args.start)+"_"+str(args.stop)+"_"+args.output, 'w') as file_:
             writer = csv.writer(file_)
             writer.writerows(results)
     info('Results written to {}'.format(args.output))
