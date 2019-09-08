@@ -25,14 +25,12 @@ def loadDatabase(results, table):
     query='''LOAD DATA LOCAL INFILE 'temp.csv' INTO TABLE crashpatch.{}
                 FIELDS TERMINATED BY ',' 
                 ENCLOSED BY '"' 
-                LINES TERMINATED BY '\n'
-                IGNORE 1 LINES;'''.format(table)
+                LINES TERMINATED BY '\n''''.format(table)
     with connection.cursor() as cursor:
         cursor.execute(query)
     os.remove("temp.csv")
 def parse(service, url, start, stop, browser):
     results = list()
-    debug=[]
     if '{}' not in url:
         warning('URL does not have a placeholder for page number.')
 
