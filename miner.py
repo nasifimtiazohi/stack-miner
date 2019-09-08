@@ -32,7 +32,7 @@ def loadDatabase(results, table):
     os.remove("temp.csv")
 def parse(service, url, start, stop, browser):
     results = list()
-
+    debug=[]
     if '{}' not in url:
         warning('URL does not have a placeholder for page number.')
 
@@ -50,9 +50,9 @@ def parse(service, url, start, stop, browser):
             if not temp:
                 print("no new data found at page ",page,"...exiting..")
                 return True
-            results += parser.parse(url.format(page))
+            results += temp
             info('{} results after {}\'th offset(s)'.format(len(results) - 1, index))
-            if len(results) >  200:
+            if len(results) >  20000:
                 loadDatabase(results,'crashes')
                 results=[]
             index += 40
@@ -111,10 +111,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     info('Parsing {}'.format(args.url))
-    results = parse(
+    exit = parse(
             args.service, args.url, args.start, args.stop, args.browser
         )
-    print(results)
+    print(exit)
     # if results:
     #     with open(str(args.start)+"_"+str(args.stop)+"_"+args.output, 'w') as file_:
     #         writer = csv.writer(file_)
