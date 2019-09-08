@@ -8,7 +8,28 @@ from selenium.webdriver.common.keys import Keys
 from logger import *
 from parser import Parser
 
-
+import pymysql
+import os 
+connection = pymysql.connect(host='localhost',
+                             user='root',
+                             db='coverityscan',
+                             charset='utf8mb4',
+                             cursorclass=pymysql.cursors.DictCursor,
+                             autocommit=True,
+                             local_infile=True)
+def loadDatabase(results, table):
+    with open("temp.csv", 'w') as file_:
+            writer = csv.writer(file_)
+            writer.writerows(results)
+    file_.close()
+    query='''LOAD DATA LOCAL INFILE 'temp.csv' INTO TABLE crashpatch.{}
+                FIELDS TERMINATED BY ',' 
+                ENCLOSED BY '"' 
+                LINES TERMINATED BY '\n'
+                IGNORE 1 LINES;'''.format(table)
+    with connection.cursor() as cursor:
+        cursor.execute(query)
+    os.remove("temp.csv")
 def parse(service, url, start, stop, browser):
     results = list()
 
@@ -24,22 +45,28 @@ def parse(service, url, start, stop, browser):
             results.append(header)
 
         index = 0
-        #TODO how to know the pagination has ended?
         for page in range(start, stop+1, 40):
             temp=parser.parse(url.format(page))
             if not temp:
                 print("no new data found at page ",page,"...exiting..")
-                exit(1)
+                return True
             results += parser.parse(url.format(page))
             info('{} results after {}\'th offset(s)'.format(len(results) - 1, index))
+            if len(results) >  200:
+                loadDatabase(results,'crashes')
+                results=[]
             index += 40
     except KeyboardInterrupt:
         sys.stdout.write('\r')
         info('Exiting...')
+        return False
     finally:
+        #insert the rest of the data in database
+        if results:
+            loadDatabase(results,'crashes')
         parser.teardown()
 
-    return results
+    return True
 
 
 if __name__ == '__main__':
@@ -87,8 +114,9 @@ if __name__ == '__main__':
     results = parse(
             args.service, args.url, args.start, args.stop, args.browser
         )
-    if results:
-        with open(str(args.start)+"_"+str(args.stop)+"_"+args.output, 'w') as file_:
-            writer = csv.writer(file_)
-            writer.writerows(results)
-    info('Results written to {}'.format(args.output))
+    print(results)
+    # if results:
+    #     with open(str(args.start)+"_"+str(args.stop)+"_"+args.output, 'w') as file_:
+    #         writer = csv.writer(file_)
+    #         writer.writerows(results)
+    # info('Results written to {}'.format(args.output))

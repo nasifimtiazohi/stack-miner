@@ -30,7 +30,7 @@ optional arguments:
 Example that scrapes the first two pages:
 
 ```
-python miner.py -b firefox fedora https://retrace.fedoraproject.org/faf/reports/?order_by=count&associate=__None&first_occurrence_daterange=&component_names=&last_occurrence_daterange=2017-05-22%3A2017-06-20&offset={} test.csv --start 0 --stop 40
+python3 miner.py -b firefox fedora "https://retrace.fedoraproject.org/faf/reports/?opsysreleases=128&component_names=&associate=__None&solution=y&daterange=2018-09-01%3A2019-09-01&order_by=last_occurrence&offset={}" output.csv --start 0 --stop 40
 ```
 
 The firefox folder needs to be integrated with the current set of scripts. Currently has some hard coded badness I need to refactor...
