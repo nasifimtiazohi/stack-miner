@@ -12,24 +12,62 @@ import pymysql
 import os 
 connection = pymysql.connect(host='localhost',
                              user='root',
-                             db='coverityscan',
+                             db='crashpatch',
                              charset='utf8mb4',
                              cursorclass=pymysql.cursors.DictCursor,
                              autocommit=True,
                              local_infile=True)
-def loadDatabase(results, table):
+def execute(query):
+    with connection.cursor() as cursor:
+        cursor.execute(query)
+        results=cursor.fetchall()
+    return results
+def loadCrashIds(results,software):
     with open("temp.csv", 'w') as file_:
             writer = csv.writer(file_)
             writer.writerows(results)
     file_.close()
-    query='''LOAD DATA LOCAL INFILE 'temp.csv' INTO TABLE crashpatch.{}
+
+    #create a temporary table for keeping track of exisiting crashes to new software
+    query='drop table if exists temp;'
+    execute(query)
+    query='''create table temp as
+            select * from crashes limit 0;'''
+    execute(query)
+
+    # load the crash data into temp table
+    query='''LOAD DATA LOCAL INFILE 'temp.csv' INTO TABLE crashpatch.temp
                 FIELDS TERMINATED BY ',' 
                 ENCLOSED BY '"' 
-                LINES TERMINATED BY '\n''''.format(table)
-    with connection.cursor() as cursor:
-        cursor.execute(query)
+                LINES TERMINATED BY '\n' 
+                IGNORE 1 LINES'''
+    execute(query)
+
+    #insert the new ids to crashes table 
+    query='''insert into crashes 
+        select * from temp
+        where crashID not in (select crashID from crashes) ;'''
+    execute(query)
+
+    #update the exisiting ones
+    query='''update softwares
+            set {}=1
+            where crashID in 
+            (select * from
+            (select s.crashID as crashID from temp t
+            join softwares s on s.crashID=t.crashID)as sub);'''.format(software)
+    execute(query)
+    #put the new ones to software
+    query='''insert into softwares(crashId,{})
+            select crashId, 1 from temp
+            where crashID not in (select crashID from softwares);'''.format(software)
+    execute(query)
+    
+    #clean the temporary tables and csv files
     os.remove("temp.csv")
-def parse(service, url, start, stop, browser):
+    query='drop table temp;'
+    execute(query)
+def parse(service, url, start, stop, browser, software):
     results = list()
     if '{}' not in url:
         warning('URL does not have a placeholder for page number.')
@@ -51,7 +89,7 @@ def parse(service, url, start, stop, browser):
             results += temp
             info('{} results after {}\'th offset(s)'.format(len(results) - 1, index))
             if len(results) >  20000:
-                loadDatabase(results,'crashes')
+                loadCrashIds(results,software)
                 results=[]
             index += 40
     except KeyboardInterrupt:
@@ -61,7 +99,7 @@ def parse(service, url, start, stop, browser):
     finally:
         #insert the rest of the data in database
         if results:
-            loadDatabase(results,'crashes')
+            loadCrashIds(results,software)
         parser.teardown()
 
     return True
@@ -86,6 +124,12 @@ if __name__ == '__main__':
             '--stop', dest='stop', type=int, default=1,
             help='Index of the page of results to stop parsing to.'
         )
+
+    parser.add_argument(
+            '--software', dest='software', type=str, default=1,
+            help='The specific version of software the crash dump will belong to.'
+        )
+
     parser.add_argument(
             'service',
             choices=['fedora'],
@@ -108,11 +152,21 @@ if __name__ == '__main__':
         )
     args = parser.parse_args()
 
+    #check if software is listed in the database
+    software=args.software
+    query='''Select Column_Name
+               From INFORMATION_SCHEMA.COLUMNS
+               Where Table_Name = 'softwares' and Column_Name = '{}' '''.format(software)
+    if not execute(query):
+        error('software version is not listed to process')
+        exit()
+
     info('Parsing {}'.format(args.url))
     exit = parse(
-            args.service, args.url, args.start, args.stop, args.browser
+            args.service, args.url, args.start, args.stop, args.browser, args.software
         )
     print(exit)
+
     # if results:
     #     with open(str(args.start)+"_"+str(args.stop)+"_"+args.output, 'w') as file_:
     #         writer = csv.writer(file_)
