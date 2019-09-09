@@ -19,13 +19,14 @@ TAG = By.TAG_NAME
 DATE_RE = re.compile('(\d{4})-(\d{2})-(\d{2})')
 YEAR_RE = re.compile('(\d{4})')
 
-
 class Parser(object):
     def __init__(self, service='fedora', browser='firefox'):
         self.service = service
         self.browser = browser
         self.driver = None
-
+    def convert_to_int(self,s):
+        s=s.strip().replace(',','')
+        return int(s)
     def get_crashes_header(self):
         if self.service == 'fedora':
             return ('Crash_ID', 'Component', 'Crash Function', 'Status', 'Type', 'Last Date', 'First Date', 'Count')
@@ -91,9 +92,33 @@ class Parser(object):
             elif 'version' in row['class']:
                 temp=row.find_all('td')
                 version=temp[0].text.strip()
-                count=temp[1].text.strip()
+                count=self.convert_to_int(temp[1].text)
                 packages.append([package,version,count])
         return packages
+    def get_os(self):
+        os=[]
+        container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > div.row > div.col-md-6.statistics > div.unique_data > table > tbody')
+        soup=bs(container.get_attribute('innerHTML'),'html.parser')
+        rows=soup.find_all('tr',{'class':['package','package hide']})
+        for row in rows:
+            cols=row.find_all('td')
+            package=cols[0].text
+            temp=cols[1].text.split('/')
+            uniqueCount=self.convert_to_int(temp[0])
+            totalCount=self.convert_to_int(temp[1])
+            os.append([package,uniqueCount,totalCount])
+        return os
+    def get_architectures(self):
+        arch=[]
+        container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > div.row > div.col-md-6.statistics > table.table.table-striped.table-bordered.metric.table-condensed > tbody')
+        soup=bs(container.get_attribute('innerHTML'),'html.parser')
+        rows=soup.find_all('tr',{'class':['package','package hide']})
+        for row in rows:
+            cols=row.find_all('td')
+            architecture=cols[0].text
+            count=self.convert_to_int(cols[1].text)
+            arch.append([architecture,count])
+        return arch
     def parse_crash_report(self,url):
         _architecture=[]
         _backtrace=[]
@@ -106,11 +131,13 @@ class Parser(object):
             _report=self.get_general_report()
             _backtraces=self.get_backtraces()
             _relPackages=self.get_packages()
+            _os=self.get_os()
+            _architecture=self.get_architectures()
         except WebDriverException:
             extype, exvalue, extrace = sys.exc_info()
             traceback.print_exception(extype, exvalue, extrace) 
         
-        return _report,_backtraces,_relPackages
+        return _architecture,_backtraces,_report,_os,_relPackages
     def _parse_fedora(self, url):
         _results = list()
 
