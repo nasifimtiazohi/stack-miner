@@ -6,7 +6,7 @@ from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
-
+from bs4 import BeautifulSoup as bs
 from logger import *
 
 # Convenience Aliases
@@ -77,6 +77,23 @@ class Parser(object):
                 backtrace.append(col.text)
             backtraces.append(backtrace)
         return backtraces
+    def get_packages(self):
+        packages=[]
+        container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > div.row > div.col-md-6.statistics > table.table.table-bordered.counts-table.table-condensed > tbody')
+        soup=bs(container.get_attribute('innerHTML'),'html.parser')
+        rows=soup.find_all('tr',{'class':['package','package stripe','package hide','package stripe hide','version','version hide']})
+        #we will have a package name updated first before getting a version
+        package=''
+        for row in rows:
+            if 'package' in row['class']:
+                temp=row.find_all('td')
+                package=temp[0].text.strip()
+            elif 'version' in row['class']:
+                temp=row.find_all('td')
+                version=temp[0].text.strip()
+                count=temp[1].text.strip()
+                packages.append([package,version,count])
+        return packages
     def parse_crash_report(self,url):
         _architecture=[]
         _backtrace=[]
@@ -88,11 +105,12 @@ class Parser(object):
             #get the reports
             _report=self.get_general_report()
             _backtraces=self.get_backtraces()
+            _relPackages=self.get_packages()
         except WebDriverException:
             extype, exvalue, extrace = sys.exc_info()
             traceback.print_exception(extype, exvalue, extrace) 
         
-        return _report,_backtraces
+        return _report,_backtraces,_relPackages
     def _parse_fedora(self, url):
         _results = list()
 
