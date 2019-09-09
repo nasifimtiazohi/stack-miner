@@ -67,27 +67,32 @@ class Parser(object):
             _report['Tainted']='Tainted'
         return _report
     def get_backtraces(self):
-        _backtrace={}
+        backtraces=[]
         #do mining
-        return _backtrace
+        container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > table > tbody')
+        rows=container.find_elements_by_tag_name('tr')
+        for row in rows:
+            backtrace=[]
+            for col in row.find_elements_by_tag_name('td'):
+                backtrace.append(col.text)
+            backtraces.append(backtrace)
+        return backtraces
     def parse_crash_report(self,url):
-        print(url)
         _architecture=[]
         _backtrace=[]
         _report={}
         _os=[]
         _relPackages=[]
-
         try:
             self.driver.get(url)
             #get the reports
             _report=self.get_general_report()
-            _backtrace=self.get_backtraces()
+            _backtraces=self.get_backtraces()
         except WebDriverException:
             extype, exvalue, extrace = sys.exc_info()
             traceback.print_exception(extype, exvalue, extrace) 
         
-        return _report
+        return _report,_backtraces
     def _parse_fedora(self, url):
         _results = list()
 
