@@ -22,6 +22,13 @@ def execute(query):
         cursor.execute(query)
         results=cursor.fetchall()
     return results
+def executemany(query):
+    query=query.replace('\n','')
+    queries=query.split(';')
+    if queries[-1].strip()=='':
+        queries=queries[:-1]
+    for q in queries:
+        execute(q.strip())
 def loadCrashIds(results,software):
     with open("temp.csv", 'w') as file_:
             writer = csv.writer(file_)
@@ -29,11 +36,11 @@ def loadCrashIds(results,software):
     file_.close()
 
     #create a temporary table for keeping track of exisiting crashes to new software
-    query='drop table if exists temp;'
-    execute(query)
-    query='''create table temp as
-            select * from crashes limit 0;'''
-    execute(query)
+    query='''drop table if exists temp;
+            create table temp as
+            select * from crashes limit 0;
+            alter table temp add primary key (crashID);'''
+    executemany(query)
 
     # load the crash data into temp table
     query='''LOAD DATA LOCAL INFILE 'temp.csv' INTO TABLE crashpatch.temp
@@ -76,13 +83,13 @@ def parse(service, url, start, stop, browser, software):
         parser = Parser(service, browser)
         parser.setup()
 
-        header = parser.get_header()
+        header = parser.get_crashes_header()
         if header:
             results.append(header)
 
         index = 0
         for page in range(start, stop+1, 40):
-            temp=parser.parse(url.format(page))
+            temp=parser.parse_crashes(url.format(page))
             if not temp:
                 print("no new data found at page ",page,"...exiting..")
                 return True

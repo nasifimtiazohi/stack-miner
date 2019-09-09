@@ -26,13 +26,13 @@ class Parser(object):
         self.browser = browser
         self.driver = None
 
-    def get_header(self):
+    def get_crashes_header(self):
         if self.service == 'fedora':
             return ('Crash_ID', 'Component', 'Crash Function', 'Status', 'Type', 'Last Date', 'First Date', 'Count')
         else:
             return None
 
-    def parse(self, url):
+    def parse_crashes(self, url):
         debug('Parsing {}'.format(url))
         if self.service == 'fedora':
             return self._parse_fedora(url)
@@ -49,6 +49,7 @@ class Parser(object):
 
         if browser == 'firefox':
             driver = webdriver.Firefox(executable_path='./geckodriver')
+            driver.set_page_load_timeout(300)
         else:
             error('Cannot create driver for browser {}'.format(browser))
             sys.exit(1)
@@ -78,3 +79,31 @@ class Parser(object):
     def _contains(self, element, by, value):
         elements = element.find_elements(by, value)
         return len(elements) > 0
+
+class crashParser:
+    #boilerplate code from prior class start here
+    def __init__(self, service, browser):
+        self.service = service
+        self.browser = browser
+        self.driver = None
+    def setup(self):
+        self.driver = self._get_driver(self.browser)
+
+    def teardown(self):
+        if self.driver:
+            self.driver.close()
+
+    def _get_driver(self, browser):
+        driver = None
+
+        if browser == 'firefox':
+            driver = webdriver.Firefox(executable_path='./geckodriver')
+        else:
+            error('Cannot create driver for browser {}'.format(browser))
+            sys.exit(1)
+
+        return driver
+    def _contains(self, element, by, value):
+        elements = element.find_elements(by, value)
+        return len(elements) > 0
+    #boilerplate code from prior class end here
