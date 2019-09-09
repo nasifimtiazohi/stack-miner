@@ -1,6 +1,6 @@
 import re
 import traceback
-
+import time
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.by import By
@@ -21,7 +21,7 @@ YEAR_RE = re.compile('(\d{4})')
 
 
 class Parser(object):
-    def __init__(self, service, browser):
+    def __init__(self, service='fedora', browser='firefox'):
         self.service = service
         self.browser = browser
         self.driver = None
@@ -55,7 +55,39 @@ class Parser(object):
             sys.exit(1)
 
         return driver
+    def get_general_report(self):
+        _report={}
+        container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > div.row > div:nth-child(1) > dl')
+        dts=container.find_elements_by_tag_name('dt')
+        dds=container.find_elements_by_tag_name('dd')
+        #TODO: assert if length of dts and dds are equal
+        for i in range(0,len(dds)):
+            _report[dts[i].text]=dds[i].text
+        if 'Tainted' in container.get_attribute('innerHTML'):
+            _report['Tainted']='Tainted'
+        return _report
+    def get_backtraces(self):
+        _backtrace={}
+        #do mining
+        return _backtrace
+    def parse_crash_report(self,url):
+        print(url)
+        _architecture=[]
+        _backtrace=[]
+        _report={}
+        _os=[]
+        _relPackages=[]
 
+        try:
+            self.driver.get(url)
+            #get the reports
+            _report=self.get_general_report()
+            _backtrace=self.get_backtraces()
+        except WebDriverException:
+            extype, exvalue, extrace = sys.exc_info()
+            traceback.print_exception(extype, exvalue, extrace) 
+        
+        return _report
     def _parse_fedora(self, url):
         _results = list()
 
@@ -79,31 +111,3 @@ class Parser(object):
     def _contains(self, element, by, value):
         elements = element.find_elements(by, value)
         return len(elements) > 0
-
-class crashParser:
-    #boilerplate code from prior class start here
-    def __init__(self, service, browser):
-        self.service = service
-        self.browser = browser
-        self.driver = None
-    def setup(self):
-        self.driver = self._get_driver(self.browser)
-
-    def teardown(self):
-        if self.driver:
-            self.driver.close()
-
-    def _get_driver(self, browser):
-        driver = None
-
-        if browser == 'firefox':
-            driver = webdriver.Firefox(executable_path='./geckodriver')
-        else:
-            error('Cannot create driver for browser {}'.format(browser))
-            sys.exit(1)
-
-        return driver
-    def _contains(self, element, by, value):
-        elements = element.find_elements(by, value)
-        return len(elements) > 0
-    #boilerplate code from prior class end here
