@@ -10,13 +10,25 @@ from parser import Parser
 
 import pymysql
 import os 
-connection = pymysql.connect(host='localhost',
-                             user='root',
-                             db='crashpatch',
-                             charset='utf8mb4',
-                             cursorclass=pymysql.cursors.DictCursor,
-                             autocommit=True,
-                             local_infile=True)
+connection=None
+def openConnection():
+    global connection
+    import getpass
+    print("enter host name: ")
+    HOST=input()
+    print("enter user name: ")
+    USER=input()
+    print("enter password: ")
+    PASSWD=getpass.getpass()
+    connection = pymysql.connect(host=HOST,
+                                port=3306,
+                                user=USER,
+                                password=PASSWD,
+                                db='crashpatch',
+                                charset='utf8mb4',
+                                cursorclass=pymysql.cursors.DictCursor,
+                                autocommit=True,
+                                local_infile=True)
 def execute(query):
     with connection.cursor() as cursor:
         cursor.execute(query)
