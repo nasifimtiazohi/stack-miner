@@ -121,7 +121,7 @@ class Parser(object):
         return arch
     def parse_crash_report(self,url):
         _architecture=[]
-        _backtrace=[]
+        _backtraces=[]
         _report={}
         _os=[]
         _relPackages=[]
@@ -130,12 +130,14 @@ class Parser(object):
             #get the reports
             _report=self.get_general_report()
             _backtraces=self.get_backtraces()
-            _relPackages=self.get_packages()
             _os=self.get_os()
             _architecture=self.get_architectures()
+            _relPackages=self.get_packages()
         except WebDriverException:
             extype, exvalue, extrace = sys.exc_info()
-            traceback.print_exception(extype, exvalue, extrace) 
+            traceback.print_exception(extype, exvalue, extrace)
+            #TODO see how often and why we break here and build logic based on that
+            print(url)
         
         return _architecture,_backtraces,_report,_os,_relPackages
     def _parse_fedora(self, url):

@@ -30,7 +30,11 @@ def executemany(query):
     for q in queries:
         execute(q.strip())
 def loadCrashIds(results,software):
-    with open("temp.csv", 'w') as file_:
+    scriptname=os.path.basename(__file__)
+    tempfile=scriptname+'_temp.csv'
+    #TODO: prefix temp table name with the script name so that multiple scripts
+        # run together do not conflict. 
+    with open(tempfile, 'w') as file_:
             writer = csv.writer(file_)
             writer.writerows(results)
     file_.close()
@@ -43,11 +47,11 @@ def loadCrashIds(results,software):
     executemany(query)
 
     # load the crash data into temp table
-    query='''LOAD DATA LOCAL INFILE 'temp.csv' INTO TABLE crashpatch.temp
+    query='''LOAD DATA LOCAL INFILE '{}' INTO TABLE crashpatch.temp
                 FIELDS TERMINATED BY ',' 
                 ENCLOSED BY '"' 
                 LINES TERMINATED BY '\n' 
-                IGNORE 1 LINES'''
+                IGNORE 1 LINES'''.format(tempfile)
     execute(query)
 
     #insert the new ids to crashes table 
@@ -71,7 +75,7 @@ def loadCrashIds(results,software):
     execute(query)
     
     #clean the temporary tables and csv files
-    os.remove("temp.csv")
+    os.remove(tempfile)
     query='drop table temp;'
     execute(query)
 def parse(service, url, start, stop, browser, software):
@@ -95,7 +99,7 @@ def parse(service, url, start, stop, browser, software):
                 return True
             results += temp
             info('{} results after {}\'th offset(s)'.format(len(results) - 1, index))
-            if len(results) >  20000:
+            if len(results) >  1000:
                 loadCrashIds(results,software)
                 results=[]
             index += 40
@@ -151,14 +155,18 @@ if __name__ == '__main__':
                 'page number.'
             )
         )
-    parser.add_argument(
-            'output', help=(
-                'Path to the file to which the parse results should be '
-                'written.'
-            )
-        )
+    # parser.add_argument(
+    #         'output', help=(
+    #             'Path to the file to which the parse results should be '
+    #             'written.'
+    #         )
+    #     )
     args = parser.parse_args()
 
+    #set local infile on in case it's off
+    query='set global local_infile=1;'
+    execute(query)
+    
     #check if software is listed in the database
     software=args.software
     query='''Select Column_Name
