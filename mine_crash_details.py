@@ -140,11 +140,11 @@ if __name__=='__main__':
             )
         )
     parser.add_argument(
-            '--start', dest='limit', type= int,  default=1000000,
+            '--start', dest='start', type= int,  default=1000000,
             help='The count of new crash IDs to mine'
         )
     parser.add_argument(
-            '--stop', dest='limit', type= int,  default=1000000,
+            '--stop', dest='stop', type= int,  default=1000000,
             help='The count of new crash IDs to mine'
         )
     args = parser.parse_args()
