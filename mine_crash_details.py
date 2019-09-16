@@ -140,7 +140,11 @@ if __name__=='__main__':
             )
         )
     parser.add_argument(
-            '--limit', dest='limit', type= int,  default=1000000,
+            '--start', dest='limit', type= int,  default=1000000,
+            help='The count of new crash IDs to mine'
+        )
+    parser.add_argument(
+            '--stop', dest='limit', type= int,  default=1000000,
             help='The count of new crash IDs to mine'
         )
     args = parser.parse_args()
@@ -156,7 +160,8 @@ if __name__=='__main__':
             where crashID not in 
             (select crashID from crashReport)
             -- order by rand()
-            limit {}'''.format(args.limit)
+            and crashID > {}
+            and crashID < {}'''.format(args.start,args.stop)
     crashIDs=execute(query)
 
     parse_individual_crashes(crashIDs)
