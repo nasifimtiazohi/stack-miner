@@ -160,9 +160,8 @@ if __name__=='__main__':
             -- order by rand()
             and crashID > {}
             and crashID < {}'''.format(args.start,args.stop)
-    print(query)
     crashIDs=execute(query)
-    print(len(crashIDs))
+    print("this script will fetch ",len(crashIDs), " crashes")
     parse_individual_crashes(crashIDs)
 
 
