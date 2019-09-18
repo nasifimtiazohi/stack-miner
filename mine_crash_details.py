@@ -13,6 +13,7 @@ from parser import Parser
 import pymysql
 import os 
 import time
+import datetime
 connection=None
 def openConnection():
     global connection
@@ -71,6 +72,7 @@ def loadCrashData(architecture,backtraces,report,os,relPackages):
     load_List_into_Table(architecture,'architecture')
     load_List_into_Table(os,'os')
     print('loaded ',len(report),' new data')
+    print(datetime.datetime.now())
 def putIfValueFound(d,key):
     if key in d.keys():
         return d[key]
