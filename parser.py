@@ -147,6 +147,7 @@ class Parser(object):
             extype, exvalue, extrace = sys.exc_info()
             traceback.print_exception(extype, exvalue, extrace)
             print('could not load page?:',url)
+            return [],[],[],{},[]
         
         return _architecture,_backtraces,_report,_os,_relPackages
     def _parse_fedora(self, url):
