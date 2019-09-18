@@ -64,13 +64,13 @@ def load_List_into_Table(list,table):
                 LINES TERMINATED BY '\n' '''.format(tempfile,table)
     execute(query)
     os.remove(tempfile)
-    print("loaded 1000 new data")
 def loadCrashData(architecture,backtraces,report,os,relPackages):
     load_List_into_Table(report,'crashReport')
     load_List_into_Table(backtraces,'backtrace')
     load_List_into_Table(relPackages,'relatedPackages')
     load_List_into_Table(architecture,'architecture')
     load_List_into_Table(os,'os')
+    print('loaded ',len(report),' new data')
 def putIfValueFound(d,key):
     if key in d.keys():
         return d[key]
@@ -125,8 +125,9 @@ def parse_individual_crashes(crashIDs):
         relPackages+=add_id_and_convert_to_dbrow(id,_relPackages)
         architecture+=add_id_and_convert_to_dbrow(id,_architecture)
         os+=add_id_and_convert_to_dbrow(id,_os)
+        #print('count currently stands at: ',count)
         count +=1
-        if count > 1000:
+        if count > 500:
             loadCrashData(architecture,backtraces,report,os,relPackages)
             count,architecture,backtraces,report,os,relPackages=init_parse_individual_crashes() 
     #load he remaining data 
@@ -151,9 +152,6 @@ if __name__=='__main__':
 
 
     openConnection()
-    #set local infile on in case it's off
-    query='set global local_infile=1;'
-    execute(query)
 
     #get new crash IDs to mine
     query='''select crashID from crashes 
@@ -162,8 +160,9 @@ if __name__=='__main__':
             -- order by rand()
             and crashID > {}
             and crashID < {}'''.format(args.start,args.stop)
+    print(query)
     crashIDs=execute(query)
-
+    print(len(crashIDs))
     parse_individual_crashes(crashIDs)
 
 

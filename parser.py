@@ -58,73 +58,83 @@ class Parser(object):
         return driver
     def get_general_report(self):
         _report={}
-        container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > div.row > div:nth-child(1) > dl')
-        dts=container.find_elements_by_tag_name('dt')
-        dds=container.find_elements_by_tag_name('dd')
-        #TODO: assert if length of dts and dds are equal
-        for i in range(0,len(dds)):
-            _report[dts[i].text]=dds[i].text
-        if 'Tainted' in container.get_attribute('innerHTML'):
-            _report['Tainted']='Tainted'
+        try:
+            container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > div.row > div:nth-child(1) > dl')
+            dts=container.find_elements_by_tag_name('dt')
+            dds=container.find_elements_by_tag_name('dd')
+            #TODO: assert if length of dts and dds are equal
+            for i in range(0,len(dds)):
+                _report[dts[i].text]=dds[i].text
+            if 'Tainted' in container.get_attribute('innerHTML'):
+                _report['Tainted']='Tainted'
+        except:
+            print('could not locate general report for ',self.driver.current_url)
         return _report
     def get_backtraces(self):
         backtraces=[]
-        #do mining
-        container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > table > tbody')
-        rows=container.find_elements_by_tag_name('tr')
-        for row in rows:
-            backtrace=[]
-            for col in row.find_elements_by_tag_name('td'):
-                backtrace.append(col.text)
-            backtraces.append(backtrace)
+        try:
+            #do mining
+            container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > table > tbody')
+            rows=container.find_elements_by_tag_name('tr')
+            for row in rows:
+                backtrace=[]
+                for col in row.find_elements_by_tag_name('td'):
+                    backtrace.append(col.text)
+                backtraces.append(backtrace)
+        except:
+            print('could not locate backtraces for ',self.driver.current_url)
         return backtraces
     def get_packages(self):
         packages=[]
-        container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > div.row > div.col-md-6.statistics > table.table.table-bordered.counts-table.table-condensed > tbody')
-        soup=bs(container.get_attribute('innerHTML'),'html.parser')
-        rows=soup.find_all('tr',{'class':['package','package stripe','package hide','package stripe hide','version','version hide']})
-        #we will have a package name updated first before getting a version
-        package=''
-        for row in rows:
-            if 'package' in row['class']:
-                temp=row.find_all('td')
-                package=temp[0].text.strip()
-            elif 'version' in row['class']:
-                temp=row.find_all('td')
-                version=temp[0].text.strip()
-                count=self.convert_to_int(temp[1].text)
-                packages.append([package,version,count])
+        try:
+            container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > div.row > div.col-md-6.statistics > table.table.table-bordered.counts-table.table-condensed > tbody')
+            soup=bs(container.get_attribute('innerHTML'),'html.parser')
+            rows=soup.find_all('tr',{'class':['package','package stripe','package hide','package stripe hide','version','version hide']})
+            #we will have a package name updated first before getting a version
+            package=''
+            for row in rows:
+                if 'package' in row['class']:
+                    temp=row.find_all('td')
+                    package=temp[0].text.strip()
+                elif 'version' in row['class']:
+                    temp=row.find_all('td')
+                    version=temp[0].text.strip()
+                    count=self.convert_to_int(temp[1].text)
+                    packages.append([package,version,count])
+        except:
+            print('could not locate related packages for ',self.driver.current_url)
         return packages
     def get_os(self):
         os=[]
-        container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > div.row > div.col-md-6.statistics > div.unique_data > table > tbody')
-        soup=bs(container.get_attribute('innerHTML'),'html.parser')
-        rows=soup.find_all('tr',{'class':['package','package hide']})
-        for row in rows:
-            cols=row.find_all('td')
-            package=cols[0].text
-            temp=cols[1].text.split('/')
-            uniqueCount=self.convert_to_int(temp[0])
-            totalCount=self.convert_to_int(temp[1])
-            os.append([package,uniqueCount,totalCount])
+        try:
+            container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > div.row > div.col-md-6.statistics > div.unique_data > table > tbody')
+            soup=bs(container.get_attribute('innerHTML'),'html.parser')
+            rows=soup.find_all('tr',{'class':['package','package hide']})
+            for row in rows:
+                cols=row.find_all('td')
+                package=cols[0].text
+                temp=cols[1].text.split('/')
+                uniqueCount=self.convert_to_int(temp[0])
+                totalCount=self.convert_to_int(temp[1])
+                os.append([package,uniqueCount,totalCount])
+        except:
+            print('could not locate os for ',self.driver.current_url)
         return os
     def get_architectures(self):
         arch=[]
-        container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > div.row > div.col-md-6.statistics > table.table.table-striped.table-bordered.metric.table-condensed > tbody')
-        soup=bs(container.get_attribute('innerHTML'),'html.parser')
-        rows=soup.find_all('tr',{'class':['package','package hide']})
-        for row in rows:
-            cols=row.find_all('td')
-            architecture=cols[0].text
-            count=self.convert_to_int(cols[1].text)
-            arch.append([architecture,count])
+        try:
+            container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > div.row > div.col-md-6.statistics > table.table.table-striped.table-bordered.metric.table-condensed > tbody')
+            soup=bs(container.get_attribute('innerHTML'),'html.parser')
+            rows=soup.find_all('tr',{'class':['package','package hide']})
+            for row in rows:
+                cols=row.find_all('td')
+                architecture=cols[0].text
+                count=self.convert_to_int(cols[1].text)
+                arch.append([architecture,count])
+        except:
+            print('could not architecture for ',self.driver.current_url)
         return arch
     def parse_crash_report(self,url):
-        _architecture=[]
-        _backtraces=[]
-        _report={}
-        _os=[]
-        _relPackages=[]
         try:
             self.driver.get(url)
             #get the reports
@@ -136,8 +146,7 @@ class Parser(object):
         except WebDriverException:
             extype, exvalue, extrace = sys.exc_info()
             traceback.print_exception(extype, exvalue, extrace)
-            #TODO see how often and why we break here and build logic based on that
-            print(url)
+            print('could not load page?:',url)
         
         return _architecture,_backtraces,_report,_os,_relPackages
     def _parse_fedora(self, url):
