@@ -129,7 +129,7 @@ def parse_individual_crashes(crashIDs):
         os+=add_id_and_convert_to_dbrow(id,_os)
         #print('count currently stands at: ',count)
         count +=1
-        if count > 500:
+        if count > 250:
             loadCrashData(architecture,backtraces,report,os,relPackages)
             count,architecture,backtraces,report,os,relPackages=init_parse_individual_crashes() 
     #load he remaining data 

@@ -55,4 +55,14 @@ CREATE TABLE `crashpatch`.`crashReport` (
   PRIMARY KEY (`crashID`));
 
 
--- https://retrace.fedoraproject.org/faf/reports/?opsysreleases=127&component_names=&associate=__None&daterange=2018-09-01%3A2019-09-01&order_by=last_occurrence
+CREATE TABLE `crashpatch`.`cpes` (
+  `cveID` INT NOT NULL,
+  `cpe` VARCHAR(45) NULL,
+  `part` VARCHAR(45) NULL,
+  `vendor` VARCHAR(255) NULL,
+  `product` VARCHAR(255) NULL,
+  `version` VARCHAR(255) NULL,
+  `update` VARCHAR(255) NULL,
+  `edition` VARCHAR(255) NULL,
+  `language` VARCHAR(255) NULL,
+  `rest` VARCHAR(255) NULL);

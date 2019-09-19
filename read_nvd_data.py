@@ -31,6 +31,18 @@ for cve in cves:
     if len(value)>1:
         print(cve)
         exit()
+    value=value[0]
+    if len(value)>1:
+        print(cve)
+        exit()
+    value=value['description']
+    if len(value)>1:
+        print(cve)
+        exit()
+    
+    #get the list of description here
+
+    
 
     
     
