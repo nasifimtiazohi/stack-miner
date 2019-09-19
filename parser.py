@@ -139,10 +139,13 @@ class Parser(object):
             self.driver.get(url)
             #get the reports
             _report=self.get_general_report()
+            info('report feching ends')
             _backtraces=self.get_backtraces()
+            info('backtrace feching ends')
             _os=self.get_os()
             _architecture=self.get_architectures()
             _relPackages=self.get_packages()
+            info('package feching ends')
         except WebDriverException:
             extype, exvalue, extrace = sys.exc_info()
             traceback.print_exception(extype, exvalue, extrace)

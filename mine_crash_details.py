@@ -14,6 +14,9 @@ import pymysql
 import os 
 import time
 import datetime
+import gc
+import os as libraryOS
+import psutil
 connection=None
 def openConnection():
     global connection
@@ -129,9 +132,14 @@ def parse_individual_crashes(crashIDs):
         os+=add_id_and_convert_to_dbrow(id,_os)
         #print('count currently stands at: ',count)
         count +=1
-        if count > 250:
+        if count > 50:
+            process = psutil.Process(libraryOS.getpid())
+            print('BEFORE DUMPING: ',process.memory_info().rss)
             loadCrashData(architecture,backtraces,report,os,relPackages)
             count,architecture,backtraces,report,os,relPackages=init_parse_individual_crashes() 
+            gc.collect()
+            process = psutil.Process(libraryOS.getpid())
+            print('AFTER DUMPING: ',process.memory_info().rss)
     #load he remaining data 
     loadCrashData(architecture,backtraces,report,os,relPackages)
     #end function by closing the browser
