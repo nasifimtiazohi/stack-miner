@@ -4,43 +4,15 @@ import sys
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-
+from dbconnection import *
 from logger import *
 from parser import Parser
 
 import pymysql
 import os 
-connection=None
-def openConnection():
-    global connection
-    import getpass
-    print("enter host name: ")
-    HOST=input()
-    print("enter user name: ")
-    USER=input()
-    print("enter password: ")
-    PASSWD=getpass.getpass()
-    connection = pymysql.connect(host=HOST,
-                                port=3306,
-                                user=USER,
-                                password=PASSWD,
-                                db='crashpatch',
-                                charset='utf8mb4',
-                                cursorclass=pymysql.cursors.DictCursor,
-                                autocommit=True,
-                                local_infile=True)
-def execute(query):
-    with connection.cursor() as cursor:
-        cursor.execute(query)
-        results=cursor.fetchall()
-    return results
-def executemany(query):
-    query=query.replace('\n','')
-    queries=query.split(';')
-    if queries[-1].strip()=='':
-        queries=queries[:-1]
-    for q in queries:
-        execute(q.strip())
+connection=openConnection()
+
+
 def loadCrashIds(results,software):
     scriptname=os.path.basename(__file__)
     tempfile=scriptname+'_temp.csv'
@@ -56,7 +28,7 @@ def loadCrashIds(results,software):
             create table temp as
             select * from crashes limit 0;
             alter table temp add primary key (crashID);'''
-    executemany(query)
+    executemany(query,connection)
 
     # load the crash data into temp table
     query='''LOAD DATA LOCAL INFILE '{}' INTO TABLE crashpatch.temp
@@ -64,13 +36,13 @@ def loadCrashIds(results,software):
                 ENCLOSED BY '"' 
                 LINES TERMINATED BY '\n' 
                 IGNORE 1 LINES'''.format(tempfile)
-    execute(query)
+    execute(query,connection)
 
     #insert the new ids to crashes table 
     query='''insert into crashes 
         select * from temp
         where crashID not in (select crashID from crashes) ;'''
-    execute(query)
+    execute(query,connection)
 
     #update the exisiting ones
     query='''update softwares
@@ -79,17 +51,17 @@ def loadCrashIds(results,software):
             (select * from
             (select s.crashID as crashID from temp t
             join softwares s on s.crashID=t.crashID)as sub);'''.format(software)
-    execute(query)
+    execute(query,connection)
     #put the new ones to software
     query='''insert into softwares(crashId,{})
             select crashId, 1 from temp
             where crashID not in (select crashID from softwares);'''.format(software)
-    execute(query)
+    execute(query,connection)
     
     #clean the temporary tables and csv files
     os.remove(tempfile)
     query='drop table temp;'
-    execute(query)
+    execute(query,connection)
 def parse(service, url, start, stop, browser, software):
     results = list()
     if '{}' not in url:
@@ -177,14 +149,14 @@ if __name__ == '__main__':
 
     #set local infile on in case it's off
     query='set global local_infile=1;'
-    execute(query)
+    execute(query,connection)
     
     #check if software is listed in the database
     software=args.software
     query='''Select Column_Name
                From INFORMATION_SCHEMA.COLUMNS
                Where Table_Name = 'softwares' and Column_Name = '{}' '''.format(software)
-    if not execute(query):
+    if not execute(query,connection):
         error('software version is not listed to process')
         exit()
 

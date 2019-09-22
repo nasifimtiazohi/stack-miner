@@ -2,24 +2,7 @@ import pymysql
 import cryptography
 import os
 import csv
-def openConnection():
-    import getpass
-    print("enter host name: ")
-    HOST=input()
-    print("enter user name: ")
-    USER=input()
-    print("enter password: ")
-    PASSWD=getpass.getpass()
-    connection = pymysql.connect(host=HOST,
-                                port=3306,
-                                user=USER,
-                                password=PASSWD,
-                                db='crashpatch',
-                                charset='utf8mb4',
-                                cursorclass=pymysql.cursors.DictCursor,
-                                autocommit=True,
-                                local_infile=True)
-    return connection
+from dbconnection import *
 print("enter file name: ")
 file=input()
 print("enter table name: ")

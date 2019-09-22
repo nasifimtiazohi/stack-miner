@@ -17,31 +17,8 @@ import datetime
 import gc
 import os as libraryOS
 import psutil
-connection=None
-def openConnection():
-    global connection
-    import getpass
-    print("enter host name: ")
-    HOST=input()
-    print("enter user name: ")
-    USER=input()
-    print("enter password: ")
-    PASSWD=getpass.getpass()
-    connection = pymysql.connect(host=HOST,
-                                port=3306,
-                                user=USER,
-                                password=PASSWD,
-                                db='crashpatch',
-                                charset='utf8mb4',
-                                cursorclass=pymysql.cursors.DictCursor,
-                                autocommit=True,
-                                local_infile=True)
-def execute(query):
-    with connection.cursor() as cursor:
-        cursor.execute(query)
-        results=cursor.fetchall()
-    return results
-
+from dbconnection import *
+connection=openConnection()
 def init_parse_individual_crashes():
     count=0
     architecture=[]
@@ -66,7 +43,7 @@ def load_List_into_Table(list,table):
                 FIELDS TERMINATED BY ',' 
                 ENCLOSED BY '"' 
                 LINES TERMINATED BY '\n' '''.format(tempfile,table)
-    execute(query)
+    execute(query,connection)
     os.remove(tempfile)
 def loadCrashData(architecture,backtraces,report,os,relPackages):
     load_List_into_Table(report,'crashReport')
@@ -144,7 +121,6 @@ def parse_individual_crashes(crashIDs):
     loadCrashData(architecture,backtraces,report,os,relPackages)
     #end function by closing the browser
     parser.teardown()
-
 if __name__=='__main__':
     parser = argparse.ArgumentParser(
             description=(
@@ -162,7 +138,6 @@ if __name__=='__main__':
     args = parser.parse_args()
 
 
-    openConnection()
 
     #get new crash IDs to mine
     query='''select crashID from crashes 
@@ -171,7 +146,7 @@ if __name__=='__main__':
             -- order by rand()
             and crashID > {}
             and crashID < {}'''.format(args.start,args.stop)
-    crashIDs=execute(query)
+    crashIDs=execute(query,connection)
     print("this script will fetch ",len(crashIDs), " crashes")
     parse_individual_crashes(crashIDs)
 
