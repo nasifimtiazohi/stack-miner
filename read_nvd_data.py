@@ -25,24 +25,13 @@ for cve in cves:
         exit(1)
     vendors=vendors['vendor_data']
 
-    #get the list of products and here
-
-    value=cve['cve']['problemtype']['problemtype_data']
-    if len(value)>1:
-        print(cve)
-        exit()
-    value=value[0]
-    if len(value)>1:
-        print(cve)
-        exit()
-    value=value['description']
-    if len(value)>1:
-        print(cve)
-        exit()
-    
-    #get the list of description here
+    #TODO get the list of products and here
 
     
+
+
+
+
 
     
     

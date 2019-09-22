@@ -144,6 +144,7 @@ def parse_individual_crashes(crashIDs):
     loadCrashData(architecture,backtraces,report,os,relPackages)
     #end function by closing the browser
     parser.teardown()
+
 if __name__=='__main__':
     parser = argparse.ArgumentParser(
             description=(

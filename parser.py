@@ -77,8 +77,10 @@ class Parser(object):
             container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > table > tbody')
             rows=container.find_elements_by_tag_name('tr')
             for row in rows:
+                info('processed each row in backtrace')
                 backtrace=[]
                 for col in row.find_elements_by_tag_name('td'):
+                    info('processed each col in backtrace')
                     backtrace.append(col.text)
                 backtraces.append(backtrace)
         except:
