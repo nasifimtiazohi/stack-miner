@@ -185,6 +185,7 @@ class Parser(object):
 
         try:
             self.driver.get(url)
+            #TODO: change to bs4 lxml parsing
             results = self.driver.find_element(ID, 'report-list')
             for result in results.find_elements(CSS, 'tr'):
                 line = list()
