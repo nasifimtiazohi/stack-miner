@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 from bs4 import BeautifulSoup as bs
 from logger import *
-
+import lxml.html
 # Convenience Aliases
 CLASS = By.CLASS_NAME
 CSS = By.CSS_SELECTOR
@@ -75,22 +75,49 @@ class Parser(object):
         try:
             #do mining
             container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > table > tbody')
-            rows=container.find_elements_by_tag_name('tr')
+            soup=bs(container.get_attribute('innerHTML'),'lxml')
+            rows=soup.find_all('tr')
             for row in rows:
-                info('processed each row in backtrace')
                 backtrace=[]
-                for col in row.find_elements_by_tag_name('td'):
-                    info('processed each col in backtrace')
-                    backtrace.append(col.text)
+                cols=row.find_all('td')
+                for col in cols:
+                    backtrace.append(col.text.strip())
                 backtraces.append(backtrace)
-        except:
+            ## Below is raw lxml parsing than bs4 implementation.
+            ## code is faulty a bit
+            ## however this approach should see some performance improvements
+            # root=lxml.html.fromstring(container.get_attribute('innerHTML'))
+            # cells=[]
+            # for row in root.xpath('.//tr'):
+            #     temp=[]
+            #     for cell in root.xpath('.//td'):
+            #         val=cell.xpath('./text()')
+            #         val=''.join(val)
+            #         val=val.strip()
+            #         temp.append(val)
+            #     cells.append(temp)
+            # print(cells)
+
+            ##this is parsing directly from selenium
+            ##very slow becuase selenium also maintains interactiveness
+            # rows=container.find_elements_by_tag_name('tr')
+            # for row in rows:
+            #     info('processed each row in backtrace')
+            #     backtrace=[]
+            #     for col in row.find_elements_by_tag_name('td'):
+            #         info('processed each col in backtrace')
+            #         backtrace.append(col.text)
+            #     backtraces.append(backtrace)
+            # print (backtraces)
+        except Exception as e:
             print('could not locate backtraces for ',self.driver.current_url)
+            print(e)
         return backtraces
     def get_packages(self):
         packages=[]
         try:
             container=self.driver.find_element_by_css_selector('body > div.container-fluid > div > div.row > div.col-md-6.statistics > table.table.table-bordered.counts-table.table-condensed > tbody')
-            soup=bs(container.get_attribute('innerHTML'),'html.parser')
+            soup=bs(container.get_attribute('innerHTML'),'lxml')
             rows=soup.find_all('tr',{'class':['package','package stripe','package hide','package stripe hide','version','version hide']})
             #we will have a package name updated first before getting a version
             package=''
@@ -141,13 +168,11 @@ class Parser(object):
             self.driver.get(url)
             #get the reports
             _report=self.get_general_report()
-            info('report feching ends')
             _backtraces=self.get_backtraces()
-            info('backtrace feching ends')
             _os=self.get_os()
             _architecture=self.get_architectures()
             _relPackages=self.get_packages()
-            info('package feching ends')
+            print('fetched: ',self.driver.current_url)
         except WebDriverException:
             extype, exvalue, extrace = sys.exc_info()
             traceback.print_exception(extype, exvalue, extrace)
