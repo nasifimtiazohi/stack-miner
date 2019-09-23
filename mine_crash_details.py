@@ -128,6 +128,10 @@ if __name__=='__main__':
             )
         )
     parser.add_argument(
+        '--software',dest='software',type=str,
+        help='The version of software to fetch crash details'
+    )
+    parser.add_argument(
             '--start', dest='start', type= int,  default=1000000,
             help='The count of new crash IDs to mine'
         )
@@ -140,12 +144,15 @@ if __name__=='__main__':
 
 
     #get new crash IDs to mine
-    query='''select crashID from crashes 
-            where crashID not in 
+    query='''select c.crashID from crashes c
+            join softwares s
+            on c.crashID=s.crashID
+            where s.{}=1 and
+            c.crashID not in 
             (select crashID from crashReport)
             -- order by rand()
-            and crashID > {}
-            and crashID < {}'''.format(args.start,args.stop)
+            and c.crashID > {}
+            and c.crashID < {}'''.format(args.software,args.start,args.stop)
     crashIDs=execute(query,connection)
     print("this script will fetch ",len(crashIDs), " crashes")
     parse_individual_crashes(crashIDs)
