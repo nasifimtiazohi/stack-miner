@@ -19,6 +19,7 @@ import os as libraryOS
 import psutil
 from dbconnection import *
 connection=openConnection()
+import sys
 def init_parse_individual_crashes():
     count=0
     architecture=[]
@@ -32,8 +33,12 @@ def convert_to_int(s):
         s=s.strip().replace(',','')
     return int(s)
 def load_List_into_Table(list,table):
+    #bug: there can be a race condition here when multiple scripts are run in parallel
     scriptname=os.path.basename(__file__)
-    tempfile=scriptname+'_temp.csv'
+    #have a hardcoded solution for now
+    #TODO think of a more graceful solution
+    tempfile=scriptname+str(sys.argv[2])+str(sys.argv[4])+str(sys.argv[6])+'_temp.csv'
+
     #warning: no headers in these lists
     with open(tempfile, 'w') as file_:
             writer = csv.writer(file_)
@@ -140,7 +145,6 @@ if __name__=='__main__':
             help='The count of new crash IDs to mine'
         )
     args = parser.parse_args()
-
 
 
     #get new crash IDs to mine
