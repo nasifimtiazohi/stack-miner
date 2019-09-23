@@ -37,3 +37,15 @@ def executemany(query,connection):
         queries=queries[:-1]
     for q in queries:
         execute(q.strip(),connection)
+
+def reconnect():
+    connection = pymysql.connect(host=credential['host'],
+                                port=3306,
+                                user=credential['user'],
+                                password=keyring.get_password(os.path.basename(__file__),credential['user']),
+                                db='crashpatch',
+                                charset='utf8mb4',
+                                cursorclass=pymysql.cursors.DictCursor,
+                                autocommit=True,
+                                local_infile=True)
+    return connection

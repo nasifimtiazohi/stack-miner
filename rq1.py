@@ -15,4 +15,5 @@ step 1: Get the list of dependencies for the system
 def get_dependecies():
     query='''select distinct name,version
         from Fedora30_dependencies'''
+    
 
