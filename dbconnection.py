@@ -1,17 +1,22 @@
 import pymysql
+import keyring
+import getpass
+import os
+credential={}
+
 
 def openConnection():
-    import getpass
+    global credential
     print("enter host name: ")
-    HOST=input()
+    credential['host']=input()
     print("enter user name: ")
-    USER=input()
+    credential['user']=input()
     print("enter password: ")
-    PASSWD=getpass.getpass()
-    connection = pymysql.connect(host=HOST,
+    keyring.set_password(os.path.basename(__file__),credential['user'],getpass.getpass())
+    connection = pymysql.connect(host=credential['host'],
                                 port=3306,
-                                user=USER,
-                                password=PASSWD,
+                                user=credential['user'],
+                                password=keyring.get_password(os.path.basename(__file__),credential['user']),
                                 db='crashpatch',
                                 charset='utf8mb4',
                                 cursorclass=pymysql.cursors.DictCursor,

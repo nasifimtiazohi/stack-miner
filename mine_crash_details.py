@@ -51,6 +51,9 @@ def load_List_into_Table(list,table):
     execute(query,connection)
     os.remove(tempfile)
 def loadCrashData(architecture,backtraces,report,os,relPackages):
+    # global connection
+    # if not connection.open:
+    #     connection=openConnection()
     load_List_into_Table(report,'crashReport')
     load_List_into_Table(backtraces,'backtrace')
     load_List_into_Table(relPackages,'relatedPackages')
@@ -146,7 +149,7 @@ if __name__=='__main__':
         )
     args = parser.parse_args()
 
-
+    exit()
     #get new crash IDs to mine
     query='''select c.crashID from crashes c
             join softwares s
