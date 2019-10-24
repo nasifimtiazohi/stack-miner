@@ -1,5 +1,6 @@
 from difflib import SequenceMatcher
 from dbconnection import *
+import argparse
 conn=openConnection()
 mapping={'Fedora30':'fc30','Fedora29':'fc29'}
 def similar(a, b):
@@ -23,15 +24,21 @@ def getEntry_PackageAndVersions(crashID,software):
         if d>dist:
             dist=d
             target=package 
-    print(crashID,software,target)
-    #TODO: get this in the above pass?
-    # query='''select version from relatedPackages 
-    #         where crashID={} and package="{}"'''.format(crashID,target)
-    # results=execute(query,conn)
-    # versions=[]
-    # for item in results:
-    #     versions.append(item['version'])
-    # return target,versions
+    if target is None:
+        #look for every software packages
+        query='''select * from relatedPackages
+                where crashID={};'''.format(crashID)
+        packages=execute(query,conn)
+
+        dist=0
+        target=None
+        for item in packages:
+            package=item['package']
+            d=similar(component,package)
+            if d>dist:
+                dist=d
+                target=package 
+    print(crashID)
     return target
 
 def fillupEntryPackage(software):
@@ -50,5 +57,8 @@ def fillupEntryPackage(software):
         execute(query,conn)
 
 if __name__=='__main__':
-    fillupEntryPackage('Fedora30')
+    parser=argparse.ArgumentParser()
+    parser.add_argument('-s','--software',dest='software')
+    args=parser.parse_args()
+    fillupEntryPackage(args.software)
 
