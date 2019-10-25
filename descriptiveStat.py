@@ -1,6 +1,5 @@
 '''this script gives some descriptive stat for collected data'''
 from dbconnection import *
-from parseEntryPackage import *
 conn=openConnection()
 
 def crashCount():
@@ -39,20 +38,18 @@ def crashingPackageCount():
     softwares=['Fedora30','Fedora29']
     rows=[]
     for software in softwares:
-        query='''select count(distinct c.component) as res from crashes c
-                        join softwares s
-                        on c.crashID=s.crashID
-                        join relatedPackages r 
-                        on c.crashID =r.crashID
-                        where s.{}=1'''.format(software)
+        query='''select count(distinct package) as res
+                    from entryPackage
+                    where software="{}";'''.format(software)
         uniqueEntryPackages=execute(query,conn)[0]['res']
         uniqueEntryPackages='{:,}'.format(uniqueEntryPackages)
-        
-        query='''select count(distinct concat(package,version)) as res 
-                from entryPackage c
-                join softwares s
-                on c.crashID=s.crashID
-                where s.{}=1'''.format(software)
+        print(uniqueEntryPackages)
+        query='''select count(distinct rP.package, rP.version) as res
+                from entryPackage eP
+                join relatedPackages rP
+                    on eP.crashID = rP.crashID
+                    and eP.package=rP.package
+                where software="{}"'''.format(software)
         uniqueEntryPackageVersions=execute(query,conn)[0]['res']
         uniqueEntryPackageVersions='{:,}'.format(uniqueEntryPackageVersions)
         
@@ -61,27 +58,41 @@ def crashingPackageCount():
     for row in rows:
         s='&'.join(str(col) for col in row)
         print(s,r'\\')
-def fillupEntryPackage():
-    query='''select distinct c.crashID from crashes c
-                        join softwares s
-                        on c.crashID=s.crashID
-                        join relatedPackages r 
-                        on c.crashID =r.crashID'''
-    crashIDs=execute(query,conn)
-    #create an empty table to store the package names and the versions
-    query='''create table entryPackage(
-            crashID INT,
-            package VARCHAR(255),
-            version VARCHAR(255)
-    );'''
-    execute(query,conn)
-    for item in crashIDs:
-        print(item['crashID'])
-        package,versions=getEntry_PackageAndVersions(item['crashID'],conn)
-        for version in versions:
-            query='''insert into entryPackage values ({},"{}","{}")'''.format(item['crashID'],package,version)
-            print(query)
-            execute(query,conn)
+
+def manually_installed():
+    softwares=['Fedora30','Fedora29']
+    rows=[]
+    for software in softwares:
+        query='''select count(distinct package) as res
+                    from entryPackage
+                    where software="{software}"
+                    and package not in
+                    (select package from {software}_dependencies);'''.format(software=software)
+        packages=execute(query,conn)[0]["res"]
+        packages='{:,}'.format(packages)
+
+        query='''select count(*)
+                    from
+                    (select distinct rP.package,rP.version
+                    from entryPackage eP
+                    join relatedPackages rP
+                        on eP.crashID = rP.crashID
+                        and eP.package=rP.package
+                    where eP.software="{software}") as t1
+                    where not exists(
+                        select * from {software} fd
+                        where t1.package=fd.package
+                        and t1.version=fd.version
+                        );'''.format(software=software)
+        version=execute(query,conn)[0]["res"]
+        version='{:,}'.format(version)
+        
+        rows.append([software,packages,version])
+    for row in rows:
+        s='&'.join(str(col) for col in row)
+        print(s,r'\\')    
+
+
 
 if __name__=='__main__':
-    crashingPackageCount()
+    manually_installed()

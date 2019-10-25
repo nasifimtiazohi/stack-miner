@@ -66,3 +66,60 @@ CREATE TABLE `crashpatch`.`cpes` (
   `edition` VARCHAR(255) NULL,
   `language` VARCHAR(255) NULL,
   `rest` VARCHAR(255) NULL);
+
+  CREATE TABLE cvss (
+    cve character(20) NOT NULL,
+    attack_complexity_3 character(5),
+    attack_vector_3 character(20),
+    availability_impact_3 character(5),
+    confidentiality_impact_3 character(5),
+    integrity_impact_3 character(5),
+    privileges_required_3 character(5),
+    scope_3 character(10),
+    user_interaction_3 character(10),
+    vector_string_3 character(50),
+    exploitability_score_3 real,
+    impact_score_3 real,
+    base_score_3 real,
+    base_severity_3 character(10),
+    access_complexity character(10),
+    access_vector character(20),
+    authentication character(10),
+    availability_impact character(10),
+    confidentiality_impact character(10),
+    integrity_impact character(10),
+    obtain_all_privileges boolean,
+    obtain_other_privileges boolean,
+    obtain_user_privileges boolean,
+    user_interaction_required boolean,
+    vector_string character(50),
+    exploitability_score real,
+    impact_score real,
+    base_score real,
+    severity character(10),
+    description text,
+    published_date date,
+    last_modified_date date
+);
+
+CREATE TABLE affected_products (
+    cve character(20) NOT NULL,
+    vendor_name text,
+    product_name text,
+    version_value text
+);
+
+CREATE TABLE cpe (
+    cve character(20) NOT NULL,
+    cpe22uri text,
+    cpe23uri text,
+    vulnerable character(5)
+);
+
+CREATE TABLE cve_problem (
+    cve character(20) NOT NULL,
+    problem text
+);
+
+-- use this to convert tables whenever an illegal mix of collation happens
+ALTER TABLE relatedPackages CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;
