@@ -17,19 +17,20 @@ rows=[]
 
 with open(file,'r') as fp:
     line=fp.readline()
+    id=1
     while line:
         if not ('Last metadata expiration check' in line or 'Installed Packages' in line or 'Available Packages' in line):
-            print(line)
             line=line.split()
             temp=line[0].split('.')
-            name=temp[0]
-            architecture=temp[1]
+            name=temp[0].strip()
+            architecture=temp[1].strip()
             temp=line[1].split('-')
-            version=temp[0]
-            release=temp[1]
-            base=line[2]
-            rows.append([name,architecture,version,release,base])
+            version=temp[0].strip()
+            release=temp[1].strip()
+            base=line[2].strip()
+            rows.append([id,name,architecture,version,release,base])
         line=fp.readline()
+        id+=1
 
 
 with open(tempfile, 'w') as file_:
